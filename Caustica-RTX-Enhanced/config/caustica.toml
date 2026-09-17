@@ -1,0 +1,125 @@
+# Caustica RT renderer configuration.
+# A matching -Dcaustica.* system property overrides the value below.
+enabled = true
+worker-threads = 4
+
+[composite]
+	debug-view = 0
+	spp = 1
+	max-bounces = 2
+	water-waves = true
+	sun-angular-radius-deg = 0.6
+	moon-angular-radius-deg = 1.5
+	sun-noon-south-tilt-deg = 30.0
+	jitter-sign-x = 1.0
+	jitter-sign-y = -1.0
+
+# Render-thread terrain work is bounded by dispatch/result counts per streaming pass.
+# Buffer fill and BLAS/OMM preparation run on workers. max-inflight-sections bounds
+# the complete snapshot -> worker -> GPU build -> publication lifecycle.
+[terrain]
+	async-dispatch-per-tick = 64
+	section-results-per-tick = 64
+	stream-budget-ms = 1.5
+	stream-budget-max-ms = 6.0
+	stream-fallback-budget-ms = 8.0
+	max-inflight-sections = 192
+	section-table-initial-capacity = 512
+	rebase-distance-blocks = 128
+	blas-compaction = true
+
+[omm]
+	enabled = true
+	subdivision = 4
+	stats = false
+
+[entities]
+	enabled = true
+	max-entities = 1024
+	max-ordinary-entities = 1024
+
+	[entities.glow]
+		enabled = true
+
+	[entities.name-tags]
+		enabled = true
+
+	[entities.block-entities]
+		view-chunks = 8
+		builds-per-frame = 8
+		max-entities = 1024
+
+	[entities.refit]
+		rebuild-interval = 120
+		enabled = true
+
+	[entities.textures]
+		max-textures = 256
+		pbr = true
+
+	[entities.debug]
+		capture-parity = false
+
+[particles]
+	enabled = true
+	max-particles = 1024
+
+[dlss-rr]
+	enabled = true
+	preset = 6
+	quality = 0
+
+# DLSS Frame Generation. Default off; gated additionally by hardware/driver availability.
+# multi-frame-count: frames generated per rendered frame (1 = 2x, 2 = 3x, ...), clamped
+# at runtime to the driver's reported DLSSG.MultiFrameCountMax.
+[frame-generation]
+	enabled = false
+	multi-frame-count = 1
+
+# NVIDIA Reflex (VK_NV_low_latency2). Default off; gated additionally by device support.
+# minimum-interval-us: 0 = no framerate cap (Reflex just paces submission).
+[reflex]
+	enabled = true
+	low-latency-boost = true
+	minimum-interval-us = 0
+
+[exposure]
+	mode = "auto"
+	manual-ev = 0.0
+	key = 0.18
+	min-ev = -1.5
+	max-ev = 2.0
+	adapt-up = 0.12
+	adapt-down = 0.35
+
+[buffer-pool]
+	stats = false
+
+[frame-stats]
+	enabled = false
+
+# HDR display output (ST.2084/PQ). When enabled the swapchain is created in PQ automatically
+# (falls back to SDR if the surface doesn't advertise it). paper-white-nits / peak-nits
+# drive the scene-HDR -> display mapping.
+[hdr]
+	enabled = false
+	paper-white-nits = 200.0
+	peak-nits = 1000.0
+
+	[overlay.block-outline]
+		enabled = true
+
+[diagnostics]
+	heavy-crash-diagnostics = false
+
+[motion-blur]
+enabled = true
+samples = 24
+shutter-angle = 180
+max-radius = 32
+
+[post-processing]
+style = "vanilla"
+
+[performance]
+adaptive-lighting = false
