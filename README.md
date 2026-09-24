@@ -5,7 +5,7 @@ Target: Minecraft 26.2, Fabric, Java 25+, Windows x64, Vulkan
 
 English
 
-Caustica-Enhanced is a Vulkan ray-tracing renderer for Minecraft. It builds chunk-level acceleration structures and traces block, entity, and lighting geometry in a compute/ray-tracing pipeline. World streaming remains at the normal 32-chunk render-distance limit. The renderer uses one sample per pixel by default and supports up to three path bounces. ReSTIR DI and Distant Horizons integration are not included.
+Caustica-Enhanced is a Vulkan ray-tracing renderer for Minecraft. It builds chunk-level acceleration structures and traces block, entity, and lighting geometry in a compute/ray-tracing pipeline. World streaming remains at the normal 32-chunk render-distance limit. The renderer uses one sample per pixel by default and supports up to three path bounces.
 
 | Area | Features and implementation |
 |---|---|
@@ -22,7 +22,7 @@ Caustica-Enhanced is a Vulkan ray-tracing renderer for Minecraft. It builds chun
 
 目标环境： Minecraft 26.2、Fabric、Java 25+、Windows x64、Vulkan
 
-Caustica-Enhanced 是面向 Minecraft 的 Vulkan 光线追踪渲染器。它为区块几何建立加速结构，并在计算／光追管线中追踪方块、实体与光照。世界视距上限为原版 32 区块；默认每像素每帧采样 1 次，路径最多反弹 3 次。不包含 ReSTIR DI 和 Distant Horizons 集成。
+Caustica-Enhanced 是面向 Minecraft 的 Vulkan 光线追踪渲染器。它为区块几何建立加速结构，并在计算／光追管线中追踪方块、实体与光照。世界视距上限为原版 32 区块；默认每像素每帧采样 1 次，路径最多反弹 3 次。
 
 | 模块 | 功能与实现 |
 |---|---|
