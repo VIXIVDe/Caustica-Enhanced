@@ -1,0 +1,17 @@
+# Normalise line endings on commit; keep Windows scripts CRLF and shell scripts LF.
+* text=auto
+*.sh text eol=lf
+gradlew text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary payloads
+*.png binary
+*.f32 binary
+*.raw binary
+*.bin binary
+*.zip binary
+*.jar binary
+*.ktx2 binary
+*.dll binary

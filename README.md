@@ -1,48 +1,102 @@
-# Caustica-Enhanced
-Ray-traced renderer for Minecraft 26.2's Vulkan backend. Modified and enhanced by ChatGPT-6 Astra.
+# Caustica Enhanced
 
-Target: Minecraft 26.2, Fabric, Java 25+, Windows x64, Vulkan
+**Vulkan hardware path tracing for Minecraft 26.2 (Fabric).**
+Real light for the block world: sun, moon, torches, clouds, rain, fog and water all light each other by physical rules.
 
-English
+[简体中文](README.zh-CN.md) · [Showcase & comparison](docs/SHOWCASE.md) · [Technical report](docs/TECHNICAL_REPORT.md) · [Building](docs/BUILDING.md)
 
-Caustica-Enhanced is a Vulkan ray-tracing renderer for Minecraft. It builds chunk-level acceleration structures and traces block, entity, and lighting geometry in a compute/ray-tracing pipeline. World streaming remains at the normal 32-chunk render-distance limit. The renderer uses one sample per pixel by default and supports up to three path bounces.
+| | |
+| --- | --- |
+| Game | Minecraft **26.2**, Fabric Loader ≥ 0.19.5, Fabric API, Java 25+ |
+| Renderer | Vulkan hardware ray tracing (acceleration structures, ray-tracing pipeline, ray queries) |
+| Licence | GPL-3.0-only (original Caustica files keep LGPL-3.0-or-later notices) |
 
-| Area | Features and implementation |
-|---|---|
-| Reconstruction | Selectable DLSS, FSR 3.1.4 Vulkan, or XeSS 3.0.2 upscaling. DLSS is paired with NVIDIA Ray Reconstruction (RR); FSR and XeSS use NVIDIA NRD RELAX. Adapter vendor detection routes non-NVIDIA GPUs to FSR + NRD. Upscaler changes reset temporal history. |
-| Atmosphere | Optional volumetric clouds and light scattering with adjustable 0–1 strength and cloud coverage. Density sampling uses layered noise and adaptive ray-march steps; cloud shadows use a lower-cost density pass. Rain and thunderstorms smoothly raise cloud strength and coverage to 1, then restore the configured values when clear. Fog strength remains independently adjustable. |
-| Water | Performance and Quality modes use 16- and 32-wave analytic surfaces respectively. Procedural phase, direction, and amplitude variation animate surface normals; refraction and caustic focusing are approximated in the shader. Water tint varies with optical path length. |
-| Materials and post-processing | LabPBR height data in normal-map alpha drives bounded parallax UV offsets on eligible opaque surfaces. Post-processing includes selectable Vanilla/GTA VI color grading, exposure, adjustable bloom, softened lens glare, and depth-aware motion blur. HDR10 output is available when supported by the system and display. |
-| NVIDIA features | Reflex On/Boost and optional 2× DLSS Frame Generation are hardware/driver gated. A first-person option excludes the local player model from ray-tracing geometry while third-person models remain available. |
-| Interface | Settings are available in English and Simplified Chinese, from vanilla Video Settings and Sodium 0.9.2. Existing configuration files take precedence over bundled defaults. |
+> **Honest status.** This source tree builds completely and passes 66 test suites / 231 Java unit tests; its shaders were compiled and
+> validated offline. **This exact build has not been run on a GPU or inside the game.** The documents describe what the source implements — they
+> make no claim about image quality or frame rate on your machine. See [Status and limits](#status-and-limits).
 
-**Validation and limits.** The delivered build passes 62 Java tests, 24 GPU numerical checks, and isolated client startup/settings checks with and without Sodium. FSR, XeSS, and NRD GPU dispatch/readback was exercised on an RTX 3060 Laptop. FSR support here is Vulkan 3.1.4, not FSR 4. NRD currently processes combined radiance rather than separate diffuse and specular signals. Other GPU vendors, HDR displays, actual frame-generation presentation, in-world image quality, and sustained performance were not independently verified.
+## What it is
 
-简体中文
+Caustica Enhanced replaces Minecraft's world renderer with a ray tracer. It traces primary rays and multiple bounces per pixel,
+then turns the noisy result into a clean image with **NVIDIA DLSS Ray Reconstruction**, or with **NRD ReBLUR plus DLSS / FSR /
+XeSS upscaling**. The interface, blocks and resource packs stay vanilla; only the lighting changes.
 
-目标环境： Minecraft 26.2、Fabric、Java 25+、Windows x64、Vulkan
+It builds on the open-source [Caustica](https://github.com/ComfyFluffy/Caustica) (ComfyFluffy) and
+[Caustica-RTX](https://github.com/AriesAlex/Caustica-RTX) (AriesAlex), with algorithms and assets from Radiance / MCVR, Prime PT and others
+(see [`mod/THIRD_PARTY_NOTICES.md`](mod/THIRD_PARTY_NOTICES.md)).
 
-Caustica-Enhanced 是面向 Minecraft 的 Vulkan 光线追踪渲染器。它为区块几何建立加速结构，并在计算／光追管线中追踪方块、实体与光照。世界视距上限为原版 32 区块；默认每像素每帧采样 1 次，路径最多反弹 3 次。
+## Highlights
 
-| 模块 | 功能与实现 |
-|---|---|
-| 重建与超分辨率 | 可选 DLSS、FSR 3.1.4 Vulkan、XeSS 3.0.2。DLSS 固定搭配 NVIDIA 光线重建 RR；FSR 和 XeSS 固定搭配 NVIDIA NRD RELAX。检测到非 NVIDIA 显卡时自动选择 FSR + NRD。切换超分辨率后重置时域历史。 |
-| 大气效果 | 可选体积云与体积光，云覆盖率和强度范围均为 0–1。分层噪声生成密度，并按距离调整光线步进；云影使用较低成本的密度计算。雨天或雷雨会平滑地把云覆盖率和强度提高至 1，天气转晴后恢复配置值。体积雾强度独立调节。 |
-| 水面 | 性能／质量模式分别使用 16／32 层解析波形。程序化改变波形相位、方向和振幅以产生动画法线；着色器近似计算折射与焦散聚光。水色随光在水中的传播距离变化。 |
-| 材质与后处理 | 从 LabPBR 法线贴图 Alpha 读取高度，在符合条件的不透明表面上进行有限视差 UV 偏移。后处理包括 Vanilla／GTA VI 调色、曝光、Bloom 强度、柔化镜头眩光和深度感知动态模糊。系统与显示器支持时可输出 HDR10。 |
-| NVIDIA 功能 3060 Laptop 上验证。此处 FSR 使用 Vulkan 3.1.4，不是 FSR 4。NRD 当前处理合并光照信号，尚未拆分漫反射与镜面反射。其他显卡厂商、HDR 显示器输出、实际帧生成呈现、游戏内画质及长时间性能尚未独立验证。
+- **Light transport** — traced diffuse, glossy reflection and transmission; glass, ice and water are refractive volumes. Always-on RIS
+  emitter sampling, optional **ReSTIR DI** (many small lights) and **ReSTIR PT Enhanced** (full-path resampling).
+- **Sky and weather** — Hillaire atmospheric scattering, physically sized sun and moon, NASA star maps, aurora, rainbows, Radiance
+  volumetric clouds, froxel volumetric light, weather-driven fog, wet ground, refractive rain, a violet volumetric End.
+- **Light in your hands** — a real light source in each hand (torch, lava bucket, glowstone …) with true shadows.
+- **Materials** — LabPBR resource packs, bounded height-field parallax, per-pack JSON overrides for emission, refractive index and dispersion.
+- **Water** — Performance / Balanced / Quality modes; Quality is a 32-component wave spectrum whose caustics derive from the visible ripples.
+- **Distant terrain** — Voxy and Distant Horizons terrain converted into traceable geometry.
+- **Camera** — physical depth of field (f/1.4–f/22), motion blur, aperture diffraction, lens flare, grain; exposure in cd/m² / EV100.
+- **Display** — ACES 2.0 output, SDR and **HDR (PQ, 500–4000 nit)**, three looks (Vanilla / GTA VI / Kodak 2383 Inspired).
+- **Frame generation** — DLSS, FSR and XeSS providers (2×–4×; 3×/4× needs RTX 50) with NVIDIA Reflex.
+- **Offline photography** — tiled accumulation up to 7680 × 7680 px; PNG / JPEG / TIFF / OpenEXR / HEIC / AVIF / JPEG XL with capture metadata.
 
+The full, source-verified feature description is the [technical report](docs/TECHNICAL_REPORT.md) (28 sections, implemented features only).
+How the project compares with Caustica-RTX, Radiance, Rethinking Voxels, SEUS PTGI, Minecraft RTX and BetterRTX is in the
+[showcase](docs/SHOWCASE.md).
 
-<img width="2560" height="1600" alt="2026-09-18_21 50 34" src="https://github.com/user-attachments/assets/0c8c7f1e-356c-4bcc-9f47-dbea6d8d8fe6" />
-<img width="2560" height="1600" alt="2026-09-18_21 38 31" src="https://github.com/user-attachments/assets/54bba7c5-14b1-4fdc-b5ab-ab421f40dc31" />
-<img width="2560" height="1600" alt="2026-09-18_21 30 56" src="https://github.com/user-attachments/assets/c606acce-624b-4a9d-9a04-49e29f9bd737" />
-<img width="2560" height="1600" alt="2026-09-18_21 23 39" src="https://github.com/user-attachments/assets/3d64d669-2849-4057-8fb6-b96b06eeeaf1" />
-<img width="2560" height="1600" alt="2026-09-18_21 22 15" src="https://github.com/user-attachments/assets/73832a2d-d0fe-47ad-847b-f808be983f93" />
-<img width="2560" height="1600" alt="2026-09-18_21 16 56" src="https://github.com/user-attachments/assets/de9ed259-cf3c-4bbc-81b2-029f81b44dfd" />
-<img width="2560" height="1600" alt="2026-09-18_21 13 12" src="https://github.com/user-attachments/assets/8a0dee8c-28ec-4417-a8c7-48117ed34537" />
-<img width="2560" height="1600" alt="2026-09-18_21 04 16" src="https://github.com/user-attachments/assets/a0f46046-a92e-48a5-8cfa-3669ca217d00" />
-<img width="2560" height="1600" alt="2026-09-18_21 02 08" src="https://github.com/user-attachments/assets/96e184fc-f1f3-467d-9b6c-c477f2880e0c" />
-<img width="2560" height="1600" alt="2026-09-18_20 53 02" src="https://github.com/user-attachments/assets/56f20024-57cd-4d5f-bdd7-d8dd84f61faf" />
-<img width="2560" height="1600" alt="2026-09-18_20 34 24" src="https://github.com/user-attachments/assets/1a6c72d8-a739-429f-8528-35bea6452a89" />
-<img width="2560" height="1600" alt="2026-09-18_20 05 56" src="https://github.com/user-attachments/assets/75c942ee-a8ce-4f95-a079-e85fcceb9433" />
-<img width="2560" height="1600" alt="2026-09-18_19 56 22" src="https://github.com/user-attachments/assets/4333f880-a1ba-4580-b477-1871c6643f6a" />
+## Requirements
+
+- A GPU and driver with Vulkan ray-tracing support. NVIDIA RTX gets DLSS Ray Reconstruction and DLSS upscaling; other vendors use the NRD ReBLUR + FSR route.
+- Windows x64 (the bundled native reconstruction library is Windows x64).
+- The **Vulkan** graphics backend selected in Minecraft's video settings.
+- VRAM: path tracing is memory-hungry; ReSTIR PT Enhanced alone needs about 736 bytes per internal pixel (≈ 1.42 GiB at 1920×1080).
+- Optional: Voxy 0.2.19-beta (with Sodium) or Distant Horizons ≥ 3.3.3 for distant terrain; an HDR display for HDR output.
+
+## Install
+
+1. Set up Minecraft 26.2 with Fabric Loader and Fabric API; choose the **Vulkan** backend in video settings.
+2. Put the built Caustica Enhanced JAR into `mods` (only one Caustica JAR). Built JARs belong under this repository's **Releases** (a JAR is ~400 MB, so it is not stored in git);
+   to build your own see [docs/BUILDING.md](docs/BUILDING.md).
+3. On first world entry the driver compiles the ray-tracing pipeline and a progress panel is shown; the result is cached.
+4. Settings are on the **Caustica Enhanced** page in video settings. Config, caches and exports live in a `Caustica Enhanced/` folder
+   inside the game directory.
+
+## Documentation
+
+| Document | Purpose |
+| --- | --- |
+| [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) · [简体中文](docs/TECHNICAL_REPORT.zh-CN.md) | What the renderer implements, in detail (no roadmap) |
+| [docs/SHOWCASE.md](docs/SHOWCASE.md) · [简体中文](docs/SHOWCASE.zh-CN.md) | User-facing overview and comparison with other projects |
+| [docs/BUILDING.md](docs/BUILDING.md) · [简体中文](docs/BUILDING.zh-CN.md) | Toolchain, what is not in the repo, build commands |
+| [mod/THIRD_PARTY_NOTICES.md](mod/THIRD_PARTY_NOTICES.md) | Third-party code, algorithms, SDKs and licence boundaries |
+| [mod/docs/](mod/docs) | Developer notes: release validation, offline photography, performance capture, Voxy compatibility, … |
+| [docs/VERIFICATION.md](docs/VERIFICATION.md) · [简体中文](docs/VERIFICATION.zh-CN.md) | What the build verified (and what it does not establish) |
+
+## Repository layout
+
+```
+Caustica-Enhanced/
+├── mod/        Gradle root: Java sources, Slang shaders, C++ bridges, resources, Python asset tools
+├── docs/       Technical report, showcase, build guide
+├── devtools/   Validation harness, helper scripts, local build agent (Windows)
+└── scripts/    Offline build wrapper for the maintainer workspace
+```
+
+Vendor SDKs, the Voxy/Distant Horizons JARs, the star-map binary, the photo-codec archives and release JARs are intentionally **not**
+in the repository; [docs/BUILDING.md](docs/BUILDING.md) says where each comes from.
+
+## Status and limits
+
+- This build was only compiled and unit-tested: no GPU run, no in-game run, no published performance numbers.
+- Frame generation raises presented frames, not simulation or tracing speed; multi-frame presentation is still experimental.
+- Parallax is a bounded height field, not displaced geometry. Distant terrain is limited to what Voxy / Distant Horizons provide.
+- ReSTIR PT needs a lot of VRAM; reuse is approximate; froxel resolution is finite.
+- The GTA VI and Kodak 2383 looks are artistic interpretations, not licensed or measured replicas.
+- Minecraft **26.2 Java only**; not Bedrock.
+
+## Licence
+
+The combined work is **GPL-3.0-only** ([`LICENSE`](LICENSE)); original Caustica files retain their LGPL-3.0-or-later notices
+([`mod/LICENSE.md`](mod/LICENSE.md), [`mod/COPYING.LESSER`](mod/COPYING.LESSER), [`mod/MCVR-LICENSE.md`](mod/MCVR-LICENSE.md)).
+Third-party components keep their own terms. NVIDIA, Intel, AMD, Minecraft and other names belong to their owners; this project is
+not affiliated with or endorsed by them.

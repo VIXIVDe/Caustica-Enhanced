@@ -1,0 +1,49 @@
+# Build output
+mod/build/
+mod/.gradle/
+mod/run/
+mod/out/
+mod/bin/
+mod/buildSrc/build/
+mod/buildSrc/.gradle/
+**/.gradle/
+*.class
+
+# Release JARs go to GitHub Releases, not into git (a JAR is ~400 MB)
+*.jar
+!mod/gradle/wrapper/gradle-wrapper.jar
+
+# Local toolchain and reference payloads (see docs/BUILDING.md)
+/toolchain/
+/reference/
+/devtools/dependencies/
+/devtools/work/
+/devtools/fixture/
+/devtools/reference-audit/
+/devtools/evidence/
+
+# Local build agent state
+/devtools/build-agent/requests/
+/devtools/build-agent/results/
+/devtools/build-agent/done/
+/devtools/build-agent/agent.json
+
+# Large or redistributable binaries that are fetched/regenerated, never committed
+/mod/src/main/resources/assets/caustica/sky/prime-starmap.bin
+/mod/src/main/resources/caustica/codecs/*.zip
+/mod/src/main/resources/caustica/natives/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.vs/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+__pycache__/
+*.pyc
+.venv/
