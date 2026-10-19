@@ -1,0 +1,1 @@
+{"required": true, "package": "dev.comfyfluffy.caustica.validation.mixin", "compatibilityLevel": "JAVA_25", "client": ["BenchmarkCameraMixin", "PerformanceLimiterMixin"], "injectors": {"defaultRequire": 1}}
