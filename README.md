@@ -3,7 +3,7 @@
 **Vulkan hardware path tracing for Minecraft 26.2 (Fabric).**
 Real light for the block world: sun, moon, torches, clouds, rain, fog and water all light each other by physical rules.
 
-![Uploading Minecraft Vice City.jpg…]()
+<img width="3840" height="2160" alt="Minecraft Vice City" src="https://github.com/user-attachments/assets/5b6a595a-c87c-427c-8fdf-9ab64fcbab44" />
 
 [简体中文](README.zh-CN.md) · [Showcase & comparison](docs/SHOWCASE.md) · [Technical report](docs/TECHNICAL_REPORT.md) · [Building](docs/BUILDING.md)
 
